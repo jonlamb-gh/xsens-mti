@@ -1,15 +1,11 @@
-// TODO warnings/etc
+// TODO
+// - warnings/etc
+// - fixup the pub/private mod, prelude
 
+#![no_std]
+//#![deny(warnings, clippy::all)]
+
+pub mod decoder;
 pub mod message;
 
-pub use message::bus_id::BusId;
-pub use message::message_id::MessageId;
-pub use message::payload_length::PayloadLength;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+pub use message::{BusId, MessageId, PayloadLength};

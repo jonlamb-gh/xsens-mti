@@ -4,6 +4,7 @@
 
 use crate::{BusId, MessageId, PayloadLength};
 use byteorder::{BigEndian, ByteOrder};
+use core::fmt;
 use core::mem::size_of;
 use static_assertions::const_assert_eq;
 
@@ -14,7 +15,10 @@ const_assert_eq!(Frame::<&[u8]>::HEADER_SIZE, size_of::<u32>());
 const_assert_eq!(Frame::<&[u8]>::EXT_LEN_SIZE, size_of::<u16>());
 const_assert_eq!(Frame::<&[u8]>::CHECKSUM_SIZE, size_of::<u8>());
 
-// TODO - generate_checksum
+// TODO
+// - generate_checksum helper
+// - extended message tests
+// - proptest round trip
 //
 // TODO impl Display
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -30,6 +34,18 @@ pub enum FrameError {
 #[derive(Debug, Clone)]
 pub struct Frame<T: AsRef<[u8]>> {
     buffer: T,
+}
+
+impl<T: AsRef<[u8]>> fmt::Display for Frame<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "BusId(0x{:X}), MsgId(0x{:X}), Len({:?})",
+            self.bus_id().0,
+            self.message_id().0,
+            self.payload_length().map_err(|_| fmt::Error)?
+        )
+    }
 }
 
 mod field {
@@ -56,9 +72,14 @@ impl<T: AsRef<[u8]>> Frame<T> {
 
     // Does not include checksum byte
     pub const HEADER_SIZE: usize = 4;
+    pub const EXT_HEADER_SIZE: usize = Self::HEADER_SIZE + Self::EXT_LEN_SIZE;
     pub const PREAMBLE_SIZE: usize = 1;
     pub const EXT_LEN_SIZE: usize = 2;
     pub const CHECKSUM_SIZE: usize = 1;
+    pub const MAX_FRAME_SIZE: usize = Self::HEADER_SIZE
+        + Self::EXT_LEN_SIZE
+        + Self::CHECKSUM_SIZE
+        + (PayloadLength::MAX_EXT as usize);
 
     pub fn new_unchecked(buffer: T) -> Frame<T> {
         Frame { buffer }
@@ -166,8 +187,6 @@ impl<T: AsRef<[u8]>> Frame<T> {
             } else {
                 Ok(PayloadLength::Extended(ext_len))
             }
-        } else if std_len > PayloadLength::MAX_STD {
-            Err(FrameError::InvalidPayloadLength)
         } else {
             Ok(PayloadLength::Standard(std_len))
         }
@@ -283,17 +302,7 @@ mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
 
-    // TODO STD_MSG and EXT_MSG
-    #[rustfmt::skip]
-    static STD_MSG: [u8; 8] = [
-        0xFA,
-        0xFF,
-        0x00,
-        0x03,
-        0x0A, 0x0B, 0x0C,
-        0xDD,
-    ];
-
+    static STD_MSG: [u8; 8] = [0xFA, 0xFF, 0x00, 0x03, 0x0A, 0x0B, 0x0C, 0xDD];
     static STD_MSG_PAYLOAD: [u8; 3] = [0x0A, 0x0B, 0x0C];
 
     #[test]
@@ -307,7 +316,7 @@ mod tests {
     }
 
     #[test]
-    fn construct() {
+    fn construct_std() {
         let mut bytes = [0xFF; 8];
         let mut f = Frame::new_unchecked(&mut bytes[..]);
         assert_eq!(f.check_len(), Ok(()));
@@ -324,5 +333,67 @@ mod tests {
         assert_eq!(f.check_payload_length(), Ok(()));
         assert_eq!(f.check_checksum(), Ok(()));
         assert_eq!(&f.into_inner()[..], &STD_MSG[..]);
+    }
+
+    #[test]
+    fn deconstruct_std() {
+        let f = Frame::new(&STD_MSG[..]).unwrap();
+        assert_eq!(f.preamble(), Frame::<&[u8]>::PREAMBLE);
+        assert_eq!(f.bus_id(), BusId::MASTER);
+        assert_eq!(f.message_id(), MessageId(0));
+        assert_eq!(
+            f.payload_length(),
+            Ok(PayloadLength::new_standard(3).unwrap())
+        );
+        assert_eq!(f.payload(), Ok(&STD_MSG_PAYLOAD[..]));
+        assert_eq!(f.checksum(), Ok(0xDD));
+    }
+
+    #[test]
+    fn missing_header() {
+        let bytes = [0xFF; 4 - 1];
+        assert_eq!(bytes.len(), Frame::<&[u8]>::header_len() - 1);
+        let r = Frame::new(&bytes[..]);
+        assert_eq!(r.unwrap_err(), FrameError::MissingHeader);
+    }
+
+    #[test]
+    fn missing_checksum() {
+        let bytes = [0xFA, 0xFF, 0x00, 0x00];
+        let f = Frame::new(&bytes[..]);
+        assert_eq!(f.unwrap_err(), FrameError::MissingChecksum);
+    }
+
+    #[test]
+    fn invalid_preamble() {
+        let bytes = [0xF0, 0xFF, 0x00, 0x00, 0x01];
+        let f = Frame::new(&bytes[..]);
+        assert_eq!(f.unwrap_err(), FrameError::InvalidPreamble);
+    }
+
+    #[test]
+    fn invalid_payload_length() {
+        let mut bytes = [0xFF; 4096];
+        bytes[0] = 0xFA;
+        bytes[1] = 0xFF;
+        bytes[2] = 0x00;
+        bytes[3] = Frame::<&[u8]>::STD_LEN_IS_EXT;
+        BigEndian::write_u16(&mut bytes[4..6], PayloadLength::MAX_EXT + 1);
+        let f = Frame::new(&bytes[..]);
+        assert_eq!(f.unwrap_err(), FrameError::InvalidPayloadLength);
+    }
+
+    #[test]
+    fn incomplete_payload() {
+        let bytes = [0xFA, 0xFF, 0x00, 0xFE, 0x01];
+        let f = Frame::new(&bytes[..]);
+        assert_eq!(f.unwrap_err(), FrameError::IncompletePayload);
+    }
+
+    #[test]
+    fn invalid_checksum() {
+        let bytes = [0xFA, 0xFF, 0x00, 0x00, 0x01 + 1];
+        let f = Frame::new(&bytes[..]);
+        assert_eq!(f.unwrap_err(), FrameError::InvalidChecksum);
     }
 }
