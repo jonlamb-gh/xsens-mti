@@ -18,7 +18,9 @@ const_assert_eq!(Frame::<&[u8]>::CHECKSUM_SIZE, size_of::<u8>());
 // TODO
 // - generate_checksum helper
 // - extended message tests
+// - add a total frame size getter
 // - proptest round trip
+// - consider removing the protocol check in payload length making it infallible
 //
 // TODO impl Display
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -312,6 +314,11 @@ mod tests {
         assert_eq!(
             Frame::<&[u8]>::buffer_len(n_payload_bytes),
             4 + 12 + Frame::<&[u8]>::CHECKSUM_SIZE
+        );
+        let n_payload_bytes = 1024;
+        assert_eq!(
+            Frame::<&[u8]>::buffer_len(n_payload_bytes),
+            4 + 2 + 1024 + Frame::<&[u8]>::CHECKSUM_SIZE
         );
     }
 

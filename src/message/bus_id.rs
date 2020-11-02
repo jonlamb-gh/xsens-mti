@@ -11,6 +11,10 @@ impl BusId {
     pub const SELF: Self = BusId(1);
 
     pub const MASTER: Self = BusId(0xFF);
+
+    pub const fn new(id: u8) -> Self {
+        BusId(id)
+    }
 }
 
 impl From<u8> for BusId {
