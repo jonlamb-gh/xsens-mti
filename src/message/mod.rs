@@ -14,6 +14,7 @@ pub use payload_length::PayloadLength;
 //   maybe separate traits
 // probably need some enc/dec error types
 //   decode/decode_into on a msg with different id doesn't fit into the FrameError type
+//   caller should check it for now
 
 pub trait MessageExt {
     const MSG_ID: MessageId;
