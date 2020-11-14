@@ -1,10 +1,10 @@
-// TODO docs on page 31
-//
+// TODO
 // this impl could use a refactor
-// redo things to deal with endianness/etc, mention docs, to/from be/le
+// explicit endianness here or in a wire-level impl
 // add all the datatype ids
 // modular_bitfield has a nice ascii diagram, do something like that
 // use modular-bitfield once const constructors land
+// docs on page 31
 //
 // proptesting
 

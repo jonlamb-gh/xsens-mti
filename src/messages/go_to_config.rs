@@ -2,9 +2,6 @@ use crate::message::{
     Frame, FrameError, MessageDecode, MessageEncode, MessageExt, MessageId, PayloadLength,
 };
 
-/// Switch the active state of the device from Measurement State to Config State.
-/// This message can also be used in Config State to confirm that Config State is
-/// currently the active state.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct GoToConfig;
 
