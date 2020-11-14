@@ -5,7 +5,7 @@ use crate::{
     wire::{DataId, OutputConfiguration},
 };
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct SetOutputConfiguration<T: AsRef<[OutputConfiguration]>> {
     settings: T,
 }

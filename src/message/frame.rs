@@ -5,15 +5,15 @@
 use crate::{BusId, MessageId, PayloadLength};
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
-use core::mem::size_of;
+use core::mem;
 use static_assertions::const_assert_eq;
 
 const_assert_eq!(PayloadLength::MAX_STD, 254);
 const_assert_eq!(PayloadLength::MAX_EXT, 2048);
-const_assert_eq!(Frame::<&[u8]>::PREAMBLE_SIZE, size_of::<u8>());
-const_assert_eq!(Frame::<&[u8]>::HEADER_SIZE, size_of::<u32>());
-const_assert_eq!(Frame::<&[u8]>::EXT_LEN_SIZE, size_of::<u16>());
-const_assert_eq!(Frame::<&[u8]>::CHECKSUM_SIZE, size_of::<u8>());
+const_assert_eq!(Frame::<&[u8]>::PREAMBLE_SIZE, mem::size_of::<u8>());
+const_assert_eq!(Frame::<&[u8]>::HEADER_SIZE, mem::size_of::<u32>());
+const_assert_eq!(Frame::<&[u8]>::EXT_LEN_SIZE, mem::size_of::<u16>());
+const_assert_eq!(Frame::<&[u8]>::CHECKSUM_SIZE, mem::size_of::<u8>());
 
 // TODO
 // - generate_checksum helper

@@ -22,7 +22,7 @@ macro_rules! enum_with_unknown {
             ),+
         }
     ) => {
-        #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+        #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
         $( #[$enum_attr] )*
         pub enum $name {
             $(
