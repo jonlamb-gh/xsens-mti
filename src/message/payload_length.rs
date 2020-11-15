@@ -24,6 +24,16 @@ impl PayloadLength {
         }
     }
 
+    pub const fn new(len: usize) -> Option<Self> {
+        if len > Self::MAX_EXT as usize {
+            None
+        } else if len > Self::MAX_STD as usize {
+            Some(PayloadLength::Extended(len as _))
+        } else {
+            Some(PayloadLength::Standard(len as _))
+        }
+    }
+
     pub fn get(&self) -> usize {
         match self {
             PayloadLength::Standard(l) => *l as usize,

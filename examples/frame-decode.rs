@@ -6,6 +6,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use xsens_mti::decoder::Decoder;
 
+// TODO - needs some work
+//
 // stty -F /dev/ttyUSB0 115200
 fn main() -> Result<(), io::Error> {
     let running = Arc::new(AtomicBool::new(true));

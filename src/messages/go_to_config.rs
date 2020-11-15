@@ -10,25 +10,16 @@ impl MessageExt for GoToConfig {
 }
 
 impl MessageEncode for GoToConfig {
-    fn encode<T: AsRef<[u8]> + AsMut<[u8]>>(&self, frame: &mut Frame<T>) -> Result<(), FrameError> {
+    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         frame.set_message_id(Self::MSG_ID);
         frame.set_payload_length(PayloadLength::Standard(0));
         Ok(())
     }
 }
 
-impl MessageDecode for GoToConfig {
-    fn decode<T: AsRef<[u8]>>(frame: &Frame<T>) -> Result<Self, FrameError>
-    where
-        Self: Sized,
-    {
-        debug_assert_eq!(frame.message_id(), Self::MSG_ID);
+impl MessageDecode<'_> for GoToConfig {
+    fn decode_new(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
         Ok(GoToConfig)
-    }
-
-    fn decode_into<T: AsRef<[u8]>>(&mut self, frame: &Frame<T>) -> Result<(), FrameError> {
-        debug_assert_eq!(frame.message_id(), Self::MSG_ID);
-        Ok(())
     }
 }
 
@@ -40,24 +31,15 @@ impl MessageExt for GoToConfigAck {
 }
 
 impl MessageEncode for GoToConfigAck {
-    fn encode<T: AsRef<[u8]> + AsMut<[u8]>>(&self, frame: &mut Frame<T>) -> Result<(), FrameError> {
+    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         frame.set_message_id(Self::MSG_ID);
         frame.set_payload_length(PayloadLength::Standard(0));
         Ok(())
     }
 }
 
-impl MessageDecode for GoToConfigAck {
-    fn decode<T: AsRef<[u8]>>(frame: &Frame<T>) -> Result<Self, FrameError>
-    where
-        Self: Sized,
-    {
-        debug_assert_eq!(frame.message_id(), Self::MSG_ID);
+impl MessageDecode<'_> for GoToConfigAck {
+    fn decode_new(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
         Ok(GoToConfigAck)
-    }
-
-    fn decode_into<T: AsRef<[u8]>>(&mut self, frame: &Frame<T>) -> Result<(), FrameError> {
-        debug_assert_eq!(frame.message_id(), Self::MSG_ID);
-        Ok(())
     }
 }

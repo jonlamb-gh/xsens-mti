@@ -12,7 +12,7 @@ const_assert_eq!(
 pub struct OutputFrequency(pub u16);
 
 impl OutputFrequency {
-    // 0 or 0xFFFF means max frequency
+    /// 0 or 0xFFFF means max frequency
     pub const MAX: Self = OutputFrequency(0xFFFF);
 }
 
@@ -135,6 +135,24 @@ impl<T: AsRef<[u8]>> AsRef<[u8]> for WireOutputConfiguration<T> {
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct WireOutputConfigurationIterator<'a> {
+    buffer: &'a [u8],
+}
+
+impl<'a> WireOutputConfigurationIterator<'a> {
+    pub fn new(buffer: &'a [u8]) -> Self {
+        WireOutputConfigurationIterator { buffer }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = OutputConfiguration> + 'a {
+        self.buffer
+            .chunks_exact(WireOutputConfiguration::<&[u8]>::WIRE_SIZE)
+            // unchecked ok, only an error if not WIRE_SIZE bytes in length
+            .map(|chunk| WireOutputConfiguration::new_unchecked(chunk).output_configuration())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -142,6 +160,14 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     static WIRE_BYTES: [u8; 4] = [0x40, 0x20, 0x01, 0x90];
+
+    #[rustfmt::skip]
+    static SEQ_BYTES: [u8; 16] = [
+        0x10, 0x20, 0xFF, 0xFF,
+        0x10, 0x60, 0xFF, 0xFF,
+        0x20, 0x10, 0x00, 0x64,
+        0x40, 0x20, 0x01, 0x90,
+    ];
 
     #[test]
     fn buffer_len() {
@@ -196,5 +222,31 @@ mod tests {
         );
         let w = WireOutputConfiguration::new(&bytes[..]);
         assert_eq!(w.unwrap_err(), WireError::MissingBytes);
+    }
+
+    #[test]
+    fn seq_iter() {
+        let expected = [
+            OutputConfiguration::new(
+                DataId::from_data_type(DataType::PacketCounter),
+                OutputFrequency::MAX,
+            ),
+            OutputConfiguration::new(
+                DataId::from_data_type(DataType::SampleTimeFine),
+                OutputFrequency::MAX,
+            ),
+            OutputConfiguration::new(
+                DataId::from_data_type(DataType::Quaternion),
+                OutputFrequency(100),
+            ),
+            OutputConfiguration::new(
+                DataId::from_data_type(DataType::Acceleration),
+                OutputFrequency(400),
+            ),
+        ];
+        let s = WireOutputConfigurationIterator::new(&SEQ_BYTES[..]);
+        for (a, b) in s.iter().zip(expected.iter()) {
+            assert_eq!(a, *b);
+        }
     }
 }

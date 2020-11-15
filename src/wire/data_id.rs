@@ -88,6 +88,14 @@ impl DataId {
             coordinate_system,
         }
     }
+
+    pub fn from_data_type(data_type: DataType) -> Self {
+        DataId {
+            data_type,
+            precision: Precision::default(),
+            coordinate_system: CoordinateSystem::default(),
+        }
+    }
 }
 
 impl From<u16> for DataId {
