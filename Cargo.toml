@@ -14,6 +14,5 @@ features = []
 
 [dev-dependencies]
 pretty_assertions = "0.6"
-embedded-hal = "0.2"
-linux-embedded-hal = "0.3"
+serial = "0.4"
 ctrlc = "3.1"

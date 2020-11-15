@@ -1,35 +1,64 @@
-use embedded_hal::serial::Read;
-use linux_embedded_hal::{nb::block, Serial};
-use std::io;
-use std::path::Path;
-use std::sync::atomic::{AtomicBool, Ordering};
+use serial::prelude::*;
+use std::io::{self, Read};
+use std::process;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use xsens_mti::decoder::Decoder;
 
-// TODO - needs some work
-//
-// stty -F /dev/ttyUSB0 115200
+// TODO - figure it the decoder error, on device wakeup
+/*
+BusId(0xFF), MsgId(0x3E), Len(Standard(0))
+BusId(0xFF), MsgId(0xD), Len(Standard(118))
+Decoder error FrameError(InvalidChecksum)
+  BusId(0xFF), MsgId(0x91), Len(Extended(1320))
+  0x91 is not in the docs, sdk says XMID_EmtsData (extended Motion Tracker Settings message)
+  propretary, but checksum should still work, probably extended length framing stuff has a bug
+BusId(0xFF), MsgId(0x36), Len(Standard(143))
+BusId(0xFF), MsgId(0x36), Len(Standard(86))
+*/
+
 fn main() -> Result<(), io::Error> {
-    let running = Arc::new(AtomicBool::new(true));
+    let running = Arc::new(AtomicUsize::new(0));
     let r = running.clone();
     ctrlc::set_handler(move || {
-        r.store(false, Ordering::SeqCst);
+        let prev = r.fetch_add(1, Ordering::SeqCst);
+        if prev == 0 {
+            println!("Shutting down");
+        } else {
+            println!("Force exit");
+            process::exit(0);
+        }
     })
     .expect("Error setting Ctrl-C handler");
 
-    let mut buffer = vec![0_u8; 2048];
-    let mut decoder = Decoder::new(&mut buffer).unwrap();
+    let mut read_buffer = vec![0_u8; 2048];
+    let mut dec_buffer = vec![0_u8; 2048];
+    let mut decoder = Decoder::new(&mut dec_buffer).unwrap();
 
-    let mut serial = Serial::open(Path::new("/dev/ttyUSB0"))?;
+    let mut port = serial::open("/dev/ttyUSB0")?;
 
-    while running.load(Ordering::SeqCst) {
-        let byte = block!(serial.read())?;
-        match decoder.decode(byte) {
-            Ok(maybe_frame) => match maybe_frame {
-                Some(f) => println!("{}", f),
-                None => (),
-            },
-            Err(e) => eprintln!("Decoder error {:?}", e),
+    port.reconfigure(&|settings| {
+        settings.set_baud_rate(serial::Baud115200)?;
+        settings.set_char_size(serial::Bits8);
+        settings.set_parity(serial::ParityNone);
+        settings.set_stop_bits(serial::Stop1);
+        settings.set_flow_control(serial::FlowNone);
+        Ok(())
+    })?;
+
+    port.set_timeout(Duration::from_millis(5000))?;
+
+    while running.load(Ordering::SeqCst) == 0 {
+        let bytes_read = port.read(&mut read_buffer)?;
+        for byte in read_buffer[..bytes_read].iter() {
+            match decoder.decode(*byte) {
+                Ok(maybe_frame) => match maybe_frame {
+                    Some(f) => println!("{}", f),
+                    None => (),
+                },
+                Err(e) => eprintln!("Decoder error {:?}", e),
+            }
         }
     }
 
