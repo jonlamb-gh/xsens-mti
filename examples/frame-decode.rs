@@ -6,18 +6,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use xsens_mti::decoder::Decoder;
 
-// TODO - figure it the decoder error, on device wakeup
-/*
-BusId(0xFF), MsgId(0x3E), Len(Standard(0))
-BusId(0xFF), MsgId(0xD), Len(Standard(118))
-Decoder error FrameError(InvalidChecksum)
-  BusId(0xFF), MsgId(0x91), Len(Extended(1320))
-  0x91 is not in the docs, sdk says XMID_EmtsData (extended Motion Tracker Settings message)
-  propretary, but checksum should still work, probably extended length framing stuff has a bug
-BusId(0xFF), MsgId(0x36), Len(Standard(143))
-BusId(0xFF), MsgId(0x36), Len(Standard(86))
-*/
-
 fn main() -> Result<(), io::Error> {
     let running = Arc::new(AtomicUsize::new(0));
     let r = running.clone();
@@ -50,7 +38,16 @@ fn main() -> Result<(), io::Error> {
     port.set_timeout(Duration::from_millis(5000))?;
 
     while running.load(Ordering::SeqCst) == 0 {
-        let bytes_read = port.read(&mut read_buffer)?;
+        let bytes_read = match port.read(&mut read_buffer) {
+            Ok(cnt) => cnt,
+            Err(e) => {
+                if matches!(e.kind(), io::ErrorKind::Interrupted) {
+                    0
+                } else {
+                    return Err(e);
+                }
+            }
+        };
         for byte in read_buffer[..bytes_read].iter() {
             match decoder.decode(*byte) {
                 Ok(maybe_frame) => match maybe_frame {

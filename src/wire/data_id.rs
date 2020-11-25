@@ -1,7 +1,5 @@
 // TODO
 // add all the datatype ids
-// consider doing [repr(transparent) DataId as a bitfield for FFI friendliness
-// proptesting, roundtrip, unknowns, etc
 // docs on page 31
 
 use crate::wire::WireError;

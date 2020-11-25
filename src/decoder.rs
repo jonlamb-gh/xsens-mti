@@ -1,7 +1,5 @@
 use crate::message::{Frame, FrameError, PayloadLength};
 
-// TODO - proptest things
-
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Error {
     InsufficientBufferSize,
@@ -150,6 +148,7 @@ impl<'a> Decoder<'a> {
                 self.reset();
                 if accumulated_checksum.trailing_zeros() >= 8 {
                     self.inc_count();
+                    // TODO - map err inc err counter, ok inc valid counter
                     let f = Frame::new(&self.buffer[..bytes_read])?;
                     return Ok(Some(f));
                 } else {

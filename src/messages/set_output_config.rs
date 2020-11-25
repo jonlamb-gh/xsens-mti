@@ -6,17 +6,6 @@ use crate::{
 };
 use core::cmp;
 
-// SetOutputConfiguration
-// SetOutputConfigurationAck
-//
-// ReqOutputConfiguration
-// ReqOutputConfigurationAck
-//
-// both resp: list of OutputConfiguration
-// common OutputConfigurationAck or OutputConfigurationIter used by both
-// struct that takes AsRef provided buffer from frame.payload()
-// impls an iterator yielding OutputConfiguration's
-
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct TooManyOutputConifgurations;
 

@@ -2,17 +2,14 @@ use crate::message::{
     Frame, FrameError, MessageDecode, MessageEncode, MessageExt, MessageId, PayloadLength,
 };
 
-/// Switch the active state of the device from Measurement State to Config State.
-/// This message can also be used in Config State to confirm that Config State is
-/// currently the active state.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct GoToConfig;
+pub struct GoToMeasurement;
 
-impl MessageExt for GoToConfig {
-    const MSG_ID: MessageId = MessageId::new(0x30);
+impl MessageExt for GoToMeasurement {
+    const MSG_ID: MessageId = MessageId::new(0x10);
 }
 
-impl MessageEncode for GoToConfig {
+impl MessageEncode for GoToMeasurement {
     fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         frame.set_message_id(Self::MSG_ID);
         frame.set_payload_length(PayloadLength::Standard(0));
@@ -20,20 +17,20 @@ impl MessageEncode for GoToConfig {
     }
 }
 
-impl MessageDecode<'_> for GoToConfig {
+impl MessageDecode<'_> for GoToMeasurement {
     fn decode_new(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
-        Ok(GoToConfig)
+        Ok(GoToMeasurement)
     }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct GoToConfigAck;
+pub struct GoToMeasurementAck;
 
-impl MessageExt for GoToConfigAck {
-    const MSG_ID: MessageId = MessageId::new(0x31);
+impl MessageExt for GoToMeasurementAck {
+    const MSG_ID: MessageId = MessageId::new(0x11);
 }
 
-impl MessageEncode for GoToConfigAck {
+impl MessageEncode for GoToMeasurementAck {
     fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         frame.set_message_id(Self::MSG_ID);
         frame.set_payload_length(PayloadLength::Standard(0));
@@ -41,8 +38,8 @@ impl MessageEncode for GoToConfigAck {
     }
 }
 
-impl MessageDecode<'_> for GoToConfigAck {
+impl MessageDecode<'_> for GoToMeasurementAck {
     fn decode_new(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
-        Ok(GoToConfigAck)
+        Ok(GoToMeasurementAck)
     }
 }

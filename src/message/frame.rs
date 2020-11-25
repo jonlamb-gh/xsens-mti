@@ -211,7 +211,7 @@ impl<T: AsRef<[u8]>> Frame<T> {
         let data = self.buffer.as_ref();
         let mut sum = 0_u16;
         for b in data[Self::PREAMBLE_SIZE..size].iter() {
-            sum = sum.saturating_add(*b as u16);
+            sum = sum.wrapping_add(*b as u16);
         }
         Ok((sum & 0xFF) as u8)
     }
