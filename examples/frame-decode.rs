@@ -4,8 +4,14 @@ use std::process;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use xsens_mti::decoder::Decoder;
+// TODO - setup the prelude
+use xsens_mti::message::MessageExt;
+use xsens_mti::messages::MTData2;
+use xsens_mti::{decoder::Decoder, message::MessageDecode};
 
+// TODO
+// -> Result<(), Box<dyn std::error::Error>>
+// use err_derive on the crate error types, remove the unwraps
 fn main() -> Result<(), io::Error> {
     let running = Arc::new(AtomicUsize::new(0));
     let r = running.clone();
@@ -51,7 +57,17 @@ fn main() -> Result<(), io::Error> {
         for byte in read_buffer[..bytes_read].iter() {
             match decoder.decode(*byte) {
                 Ok(maybe_frame) => match maybe_frame {
-                    Some(f) => println!("{}", f),
+                    Some(f) => {
+                        println!("{}", f);
+                        if f.message_id() == MTData2::MSG_ID {
+                            println!("  MTData2");
+                            let msg = MTData2::decode(&f).unwrap();
+                            for (idx, pkt_result) in msg.into_iter().enumerate() {
+                                let pkt = pkt_result.unwrap();
+                                println!("    [{}] {}", idx, pkt);
+                            }
+                        }
+                    }
                     None => (),
                 },
                 Err(e) => eprintln!("Decoder error {:?}", e),

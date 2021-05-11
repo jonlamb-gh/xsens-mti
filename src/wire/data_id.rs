@@ -1,16 +1,18 @@
 // TODO
 // add all the datatype ids
 // docs on page 31
+// do a nicer Display impl
 
 use crate::wire::WireError;
 use byteorder::{BigEndian, ByteOrder};
+use core::fmt;
 use core::mem;
 use static_assertions::const_assert_eq;
 
 const_assert_eq!(WireDataId::<&[u8]>::WIRE_SIZE, mem::size_of::<u16>());
 
 enum_with_unknown! {
-    pub doc enum Precision(u8) {
+    pub enum Precision(u8) {
         /// Single precision IEEE 32-bit floating point number
         Float32 = 0x0,
         /// Fixed point 12.20 32-bit number
@@ -29,7 +31,7 @@ impl Default for Precision {
 }
 
 enum_with_unknown! {
-    pub doc enum CoordinateSystem(u8) {
+    pub enum CoordinateSystem(u8) {
         /// East-North-Up coordinate system
         Enu = 0x0,
         /// North-East-Down coordinate system
@@ -47,24 +49,50 @@ impl Default for CoordinateSystem {
 
 enum_with_unknown! {
     pub enum DataType(u16) {
-        // TemperatureGroup = 0x08x0
-        Temperature     = 0x0810,
+        // TemperatureGroup     = 0x08x0
+        Temperature             = 0x0810,
 
-        // TimestampGroup = 0x10x0
-        UtcTime         = 0x1010,
-        PacketCounter   = 0x1020,
-        SampleTimeFine  = 0x1060,
+        // TimestampGroup       = 0x10x0
+        UtcTime                 = 0x1010,
+        PacketCounter           = 0x1020,
+        SampleTimeFine          = 0x1060,
+        SampleTimeCoarse        = 0x1070,
 
-        //OrientationGroup = 0x20xy
-        Quaternion      = 0x2010,
+        // OrientationGroup     = 0x20xy
+        Quaternion              = 0x2010,
+        EulerAngles             = 0x2030,
 
-        // AccelerationGroup = 0x40xy
-        Acceleration    = 0x4020,
+        // AccelerationGroup    = 0x40xy
+        Acceleration            = 0x4020,
+
+        // PositionGroup        = 0x50xy
+        AltitudeEllipsoid       = 0x5020,
+        PositionEcef            = 0x5030,
+        LatLon                  = 0x5040,
+
+        // AngularVelocityGroup = 0x80xy
+        RateOfTurn              = 0x8020,
+
+        // VelocityGroup        = 0xD0xy
+        VelocityXYZ             = 0xD010,
+
+        // StatusGroup          = 0xE0x0
+        StatusByte              = 0xE010,
+        StatusWord              = 0xE020,
     }
 }
 
 impl DataType {
     const MASK: u16 = 0b1111_1000_1111_0000;
+}
+
+impl fmt::Display for DataType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DataType::Unknown(t) => write!(f, "Unknown(0x{:04X})", t),
+            _ => write!(f, "{:?}", self),
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -94,6 +122,18 @@ impl DataId {
             coordinate_system: CoordinateSystem::default(),
         }
     }
+
+    pub fn data_type(&self) -> DataType {
+        self.data_type
+    }
+
+    pub fn precision(&self) -> Precision {
+        self.precision
+    }
+
+    pub fn coordinate_system(&self) -> CoordinateSystem {
+        self.coordinate_system
+    }
 }
 
 impl From<u16> for DataId {
@@ -115,6 +155,19 @@ impl From<DataId> for u16 {
         let precision = 0b11 & u8::from(value.precision) as u16;
         let coordinate_system = 0b1100 & u8::from(value.coordinate_system) as u16;
         group_type | coordinate_system | precision
+    }
+}
+
+impl fmt::Display for DataId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "DataId(0x{:04X}, {}, {:?}, {:?})",
+            u16::from(*self), // TODO - don't deref here
+            self.data_type(),
+            self.precision(),
+            self.coordinate_system(),
+        )
     }
 }
 

@@ -1,6 +1,9 @@
 // TODO
 // - warnings/etc
 // - fixup the pub/private mod, prelude
+// - add mixed-endian tests/etc
+// - add some address sanitizers to the testing, probably use the fuzz testing framework
+// - reorganize the submodules/types
 
 #![no_std]
 //#![deny(warnings, clippy::all)]

@@ -70,8 +70,8 @@ impl<'a> MessageExt for SetOutputConfigurationAck<'a> {
     const MSG_ID: MessageId = MessageId::new(0xC1);
 }
 
-impl<'buf> MessageDecode<'buf> for SetOutputConfigurationAck<'buf> {
-    fn decode_new(frame: &Frame<&'buf [u8]>) -> Result<Self, FrameError> {
+impl<'a> MessageDecode<'a> for SetOutputConfigurationAck<'a> {
+    fn decode_new(frame: &Frame<&'a [u8]>) -> Result<Self, FrameError> {
         let payload = frame.payload()?;
         Ok(SetOutputConfigurationAck(
             WireOutputConfigurationIterator::new(payload),

@@ -51,8 +51,7 @@ impl<T: AsRef<[u8]>> fmt::Display for Frame<T> {
 }
 
 mod field {
-    type Field = ::core::ops::Range<usize>;
-    type Rest = ::core::ops::RangeFrom<usize>;
+    use crate::wire::{Field, Rest};
 
     // Header fields
     pub const PREAMBLE: usize = 0;
