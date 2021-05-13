@@ -4,10 +4,7 @@ use std::process;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-// TODO - setup the prelude
-use xsens_mti::message::MessageExt;
-use xsens_mti::messages::MTData2;
-use xsens_mti::{decoder::Decoder, message::MessageDecode};
+use xsens_mti::prelude::*;
 
 // TODO
 // -> Result<(), Box<dyn std::error::Error>>
@@ -65,6 +62,91 @@ fn main() -> Result<(), io::Error> {
                             for (idx, pkt_result) in msg.into_iter().enumerate() {
                                 let pkt = pkt_result.unwrap();
                                 println!("    [{}] {}", idx, pkt);
+                                let data_id = pkt.data_id();
+                                match data_id.data_type() {
+                                    DataType::UtcTime => {
+                                        let data = UtcTime::from_be_slice(pkt.payload()).unwrap();
+                                        println!("      {}", data);
+                                    }
+                                    DataType::PacketCounter => {
+                                        let data =
+                                            PacketCounter::from_be_slice(pkt.payload()).unwrap();
+                                        println!("      {}", data);
+                                    }
+                                    DataType::SampleTimeFine => {
+                                        let data =
+                                            SampleTimeFine::from_be_slice(pkt.payload()).unwrap();
+                                        println!("      {}", data);
+                                    }
+                                    DataType::SampleTimeCoarse => {
+                                        let data =
+                                            SampleTimeCoarse::from_be_slice(pkt.payload()).unwrap();
+                                        println!("      {}", data);
+                                    }
+                                    DataType::EulerAngles => {
+                                        if matches!(data_id.precision(), Precision::Float32) {
+                                            let data =
+                                                EulerAngles::<f32>::from_be_slice(pkt.payload())
+                                                    .unwrap();
+                                            println!("      {}", data);
+                                        }
+                                    }
+                                    DataType::Acceleration => {
+                                        if matches!(data_id.precision(), Precision::Float32) {
+                                            let data =
+                                                Acceleration::<f32>::from_be_slice(pkt.payload())
+                                                    .unwrap();
+                                            println!("      {}", data);
+                                        }
+                                    }
+                                    DataType::RateOfTurn => {
+                                        if matches!(data_id.precision(), Precision::Float32) {
+                                            let data =
+                                                RateOfTurn::<f32>::from_be_slice(pkt.payload())
+                                                    .unwrap();
+                                            println!("      {}", data);
+                                        }
+                                    }
+                                    DataType::AltitudeEllipsoid => {
+                                        if matches!(data_id.precision(), Precision::Float64) {
+                                            let data = AltitudeEllipsoid::<f64>::from_be_slice(
+                                                pkt.payload(),
+                                            )
+                                            .unwrap();
+                                            println!("      {}", data);
+                                        }
+                                    }
+                                    DataType::PositionEcef => {
+                                        if matches!(data_id.precision(), Precision::Float64) {
+                                            let data =
+                                                PositionEcef::<f64>::from_be_slice(pkt.payload())
+                                                    .unwrap();
+                                            println!("      {}", data);
+                                        }
+                                    }
+                                    DataType::LatLon => {
+                                        if matches!(data_id.precision(), Precision::Float64) {
+                                            let data = LatLon::<f64>::from_be_slice(pkt.payload())
+                                                .unwrap();
+                                            println!("      {}", data);
+                                        }
+                                    }
+                                    DataType::VelocityXYZ => {
+                                        if matches!(data_id.precision(), Precision::Float32) {
+                                            let data =
+                                                VelocityXYZ::<f32>::from_be_slice(pkt.payload())
+                                                    .unwrap();
+                                            println!("      {}", data);
+                                        }
+                                    }
+                                    DataType::StatusWord => {
+                                        let data =
+                                            StatusWord::from_be_slice(pkt.payload()).unwrap();
+                                        println!("      {}", data);
+                                    }
+
+                                    _ => (),
+                                }
                             }
                         }
                     }

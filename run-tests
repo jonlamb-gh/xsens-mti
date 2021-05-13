@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+set -ex
+
+cargo test --all
+
+(
+    cd fuzz
+    for target in `cargo fuzz list`; do
+         cargo fuzz run $target -- -max_total_time=5s
+    done
+)
+
+exit 0

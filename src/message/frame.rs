@@ -2,7 +2,7 @@
 //!
 //! All binary data communication is done in big-endian format
 
-use crate::{BusId, MessageId, PayloadLength};
+use crate::message::{BusId, MessageId, PayloadLength};
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
 use core::mem;
@@ -182,11 +182,15 @@ impl<T: AsRef<[u8]>> Frame<T> {
         let data = self.buffer.as_ref();
         let std_len = data[field::LEN];
         if std_len == Self::STD_LEN_IS_EXT {
-            let ext_len = BigEndian::read_u16(&data[field::EXT_LEN]);
-            if ext_len > PayloadLength::MAX_EXT {
+            if data.len() < Self::EXT_HEADER_SIZE {
                 Err(FrameError::InvalidPayloadLength)
             } else {
-                Ok(PayloadLength::Extended(ext_len))
+                let ext_len = BigEndian::read_u16(&data[field::EXT_LEN]);
+                if ext_len > PayloadLength::MAX_EXT {
+                    Err(FrameError::InvalidPayloadLength)
+                } else {
+                    Ok(PayloadLength::Extended(ext_len))
+                }
             }
         } else {
             Ok(PayloadLength::Standard(std_len))

@@ -3,11 +3,13 @@ name = "xsens-mti"
 version = "0.1.0"
 authors = ["Jon Lamb"]
 edition = "2018"
-# TODO - switch to it once ready
-#edition = "2021"
+license = "MIT"
+repository = "https://github.com/jonlamb-gh/xsens-mti"
+description = "An unofficial and incomplete no_std Rust driver for Xsens MTi-series sensors."
 
 [dependencies]
 static_assertions = "1.1"
+bitfield = "0.13"
 
 [dependencies.byteorder]
 version = "1.4"
