@@ -8,8 +8,9 @@ edition = "2018"
 [package.metadata]
 cargo-fuzz = true
 
-[dependencies]
-libfuzzer-sys = "0.3"
+[dependencies.libfuzzer-sys]
+version = "0.4"
+features = ["arbitrary-derive"]
 
 [dependencies.xsens-mti]
 path = ".."
@@ -21,5 +22,17 @@ members = ["."]
 [[bin]]
 name = "message_frame_from_bytes"
 path = "fuzz_targets/message_frame_from_bytes.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "mtdata2_packets"
+path = "fuzz_targets/mtdata2_packets.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "frame_decoder"
+path = "fuzz_targets/frame_decoder.rs"
 test = false
 doc = false

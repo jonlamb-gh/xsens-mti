@@ -42,12 +42,11 @@ impl<T: AsRef<[OutputConfiguration]>> SetOutputConfiguration<T> {
 }
 
 impl<C: AsRef<[OutputConfiguration]>> MessageEncode for SetOutputConfiguration<C> {
-    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
+    fn encode_frame(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         let settings = self.settings.as_ref();
         let config_size = WireOutputConfiguration::<&[u8]>::WIRE_SIZE;
         let num_settings = cmp::min(Self::MAX_SETTINGS, settings.len());
         let min_size = config_size * num_settings;
-        frame.set_message_id(Self::MSG_ID);
         frame.set_payload_length(
             PayloadLength::new(min_size).ok_or(FrameError::InvalidPayloadLength)?,
         );
@@ -71,7 +70,7 @@ impl<'a> MessageExt for SetOutputConfigurationAck<'a> {
 }
 
 impl<'a> MessageDecode<'a> for SetOutputConfigurationAck<'a> {
-    fn decode_new(frame: &Frame<&'a [u8]>) -> Result<Self, FrameError> {
+    fn decode_frame(frame: &Frame<&'a [u8]>) -> Result<Self, FrameError> {
         let payload = frame.payload()?;
         Ok(SetOutputConfigurationAck(
             WireOutputConfigurationIterator::new(payload),

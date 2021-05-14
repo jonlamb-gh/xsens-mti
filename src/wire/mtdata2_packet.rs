@@ -5,7 +5,6 @@ use core::mem;
 use static_assertions::const_assert_eq;
 
 // TODO
-// figure out the high-level types up here
 //
 // AsMut setters for tests
 // construction related tests

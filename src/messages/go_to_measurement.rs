@@ -10,15 +10,14 @@ impl MessageExt for GoToMeasurement {
 }
 
 impl MessageEncode for GoToMeasurement {
-    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
-        frame.set_message_id(Self::MSG_ID);
+    fn encode_frame(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         frame.set_payload_length(PayloadLength::Standard(0));
         Ok(())
     }
 }
 
 impl MessageDecode<'_> for GoToMeasurement {
-    fn decode_new(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
+    fn decode_frame(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
         Ok(GoToMeasurement)
     }
 }
@@ -31,15 +30,14 @@ impl MessageExt for GoToMeasurementAck {
 }
 
 impl MessageEncode for GoToMeasurementAck {
-    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
-        frame.set_message_id(Self::MSG_ID);
+    fn encode_frame(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         frame.set_payload_length(PayloadLength::Standard(0));
         Ok(())
     }
 }
 
 impl MessageDecode<'_> for GoToMeasurementAck {
-    fn decode_new(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
+    fn decode_frame(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
         Ok(GoToMeasurementAck)
     }
 }

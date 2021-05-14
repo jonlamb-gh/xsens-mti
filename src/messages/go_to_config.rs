@@ -13,15 +13,14 @@ impl MessageExt for GoToConfig {
 }
 
 impl MessageEncode for GoToConfig {
-    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
-        frame.set_message_id(Self::MSG_ID);
+    fn encode_frame(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         frame.set_payload_length(PayloadLength::Standard(0));
         Ok(())
     }
 }
 
 impl MessageDecode<'_> for GoToConfig {
-    fn decode_new(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
+    fn decode_frame(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
         Ok(GoToConfig)
     }
 }
@@ -34,15 +33,14 @@ impl MessageExt for GoToConfigAck {
 }
 
 impl MessageEncode for GoToConfigAck {
-    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
-        frame.set_message_id(Self::MSG_ID);
+    fn encode_frame(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
         frame.set_payload_length(PayloadLength::Standard(0));
         Ok(())
     }
 }
 
 impl MessageDecode<'_> for GoToConfigAck {
-    fn decode_new(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
+    fn decode_frame(_frame: &Frame<&[u8]>) -> Result<Self, FrameError> {
         Ok(GoToConfigAck)
     }
 }

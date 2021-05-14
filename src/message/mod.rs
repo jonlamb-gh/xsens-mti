@@ -8,6 +8,8 @@ pub use frame::{Frame, FrameError};
 pub use message_id::MessageId;
 pub use payload_length::PayloadLength;
 
+// TODO - this stuff needs a refactor
+
 pub trait MessageExt {
     const MSG_ID: MessageId;
 
@@ -18,14 +20,19 @@ pub trait MessageExt {
 
 pub trait MessageEncode: MessageExt {
     // TODO - some sort of PayloadLength or size hint
-
+    //
     // caller sets
     //   preamble, bus_id, checksum
     //
     // impl sets
     //   msg_id, payload_length, payload
     //   if payload != 0, impl should call check_payload_len too
-    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError>;
+    fn encode(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError> {
+        frame.set_message_id(Self::MSG_ID);
+        self.encode_frame(frame)
+    }
+
+    fn encode_frame(&self, frame: &mut Frame<&mut [u8]>) -> Result<(), FrameError>;
 }
 
 pub trait MessageDecode<'buf>: MessageExt {
@@ -36,12 +43,10 @@ pub trait MessageDecode<'buf>: MessageExt {
         Self: Sized,
     {
         debug_assert_eq!(frame.message_id(), Self::MSG_ID);
-        Self::decode_new(frame)
+        Self::decode_frame(frame)
     }
 
-    fn decode_new(frame: &Frame<&'buf [u8]>) -> Result<Self, FrameError>
+    fn decode_frame(frame: &Frame<&'buf [u8]>) -> Result<Self, FrameError>
     where
         Self: Sized;
-
-    //fn decode_into<T: AsRef<[u8]>>(&mut self, frame: &Frame<T>) -> Result<(), FrameError>;
 }

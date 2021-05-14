@@ -1,3 +1,5 @@
+#![deny(warnings, clippy::all)]
+
 use serial::prelude::*;
 use std::io::{self, Read};
 use std::process;

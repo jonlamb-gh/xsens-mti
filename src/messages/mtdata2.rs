@@ -24,7 +24,7 @@ impl<'a> MessageExt for MTData2<'a> {
 }
 
 impl<'a> MessageDecode<'a> for MTData2<'a> {
-    fn decode_new(frame: &Frame<&'a [u8]>) -> Result<Self, FrameError> {
+    fn decode_frame(frame: &Frame<&'a [u8]>) -> Result<Self, FrameError> {
         let payload = frame.payload()?;
         Ok(MTData2(MTData2PacketIter::new(payload)))
     }
