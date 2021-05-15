@@ -9,7 +9,8 @@ pub use output_config::*;
 pub(crate) type Field = ::core::ops::Range<usize>;
 pub(crate) type Rest = ::core::ops::RangeFrom<usize>;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, err_derive::Error)]
 pub enum WireError {
+    #[error(display = "Missing bytes")]
     MissingBytes,
 }

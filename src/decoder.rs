@@ -1,15 +1,12 @@
 use crate::message::{Frame, FrameError, PayloadLength};
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, err_derive::Error)]
 pub enum Error {
+    #[error(display = "Not enough bytes in the decoder buffer to store the frame")]
     InsufficientBufferSize,
-    FrameError(FrameError),
-}
 
-impl From<FrameError> for Error {
-    fn from(e: FrameError) -> Self {
-        Error::FrameError(e)
-    }
+    #[error(display = "Encountered a framing error")]
+    FrameError(#[error(source)] FrameError),
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]

@@ -16,6 +16,11 @@ version = "1.4"
 default-features = false
 features = []
 
+[dependencies.err-derive]
+version = "0.3"
+default-features = false
+features = []
+
 [dev-dependencies]
 pretty_assertions = "0.6"
 serial = "0.4"

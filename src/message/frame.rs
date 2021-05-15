@@ -21,15 +21,24 @@ const_assert_eq!(Frame::<&[u8]>::CHECKSUM_SIZE, mem::size_of::<u8>());
 // - add a total frame size getter
 // - proptest round trip
 // - consider removing the protocol check in payload length making it infallible
-//
-// TODO impl Display
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, err_derive::Error)]
 pub enum FrameError {
+    #[error(display = "Not enough bytes for a valid header")]
     MissingHeader,
+
+    #[error(display = "Not enough bytes for a valid header and checksum")]
     MissingChecksum,
+
+    #[error(display = "Invalid preamble byte")]
     InvalidPreamble,
+
+    #[error(display = "Not enough bytes for a valid payload length field")]
     InvalidPayloadLength,
+
+    #[error(display = "Not enough bytes for a valid payload according to the payload length")]
     IncompletePayload,
+
+    #[error(display = "Invalid checksum")]
     InvalidChecksum,
 }
 

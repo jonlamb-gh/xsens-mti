@@ -35,32 +35,21 @@ BusId(0xFF), MsgId(0x36), Len(Standard(158))
       StatusWord(0x1800047: SelfTest(true), FilterValid(true), GNSSFix(true), ...)
 ```
 
+## Protocol
+
+See [MT_Low-Level_Documentation.pdf](https://www.xsens.com/hubfs/Downloads/Manuals/MT_Low-Level_Documentation.pdf).
+
+## CA-MP2-MTi Cable Pinout
+
+The part number of the Fischer connector is SS 102A059-130 Gunfire.
+
+| MTi    | Description |
+| :---   |        ---: |
+| Red    |     4.5-34V |
+| Black  |         GND |
+| Yellow |    RS232 Tx |
+| Grey   |    RS322 Rx |
+
 ## TODOs
 
-check out other IMU crates for their patterns
-
-* https://crates.io/crates/mpu9250
-* https://crates.io/crates/bno055
-* https://github.com/acburigo/ti154/blob/master/src/parser.rs
-* https://github.com/cpsdqs/tinyframe-rs
-  - https://github.com/cpsdqs/tinyframe-rs/blob/master/src/lib.rs
-
-make a hal-friendly example with https://github.com/rust-embedded/linux-embedded-hal serial device
-
 do all the `grep -R 'TODO' src/` things
-
-diagram/table for the cable pinout
-* mti cable red : Vin +5v
-* mti cable black : GND
-* mti cable yellow : RS232 Tx
-* mti cable grey : RS232 Rx
-
-
-DOCS BUG?:
-page 13 on the proto spec in MT low level
-IND ID 1 byte?
-not in xsmessage.h nor is it in the viz?
-
-protocol doc
-https://www.xsens.com/hubfs/Downloads/Manuals/MT_Low-Level_Documentation.pdf
-
