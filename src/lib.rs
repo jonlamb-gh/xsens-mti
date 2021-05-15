@@ -1,8 +1,6 @@
 // TODO
-// - warnings/etc
 // - fixup the pub/private mod, prelude
-// - add mixed-endian tests/etc
-// - add some address sanitizers to the testing, probably use the fuzz testing framework
+// - add mixed-endian tests/etc, probably just in CI using cross
 // - reorganize the submodules/types
 
 #![no_std]

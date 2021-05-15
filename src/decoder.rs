@@ -144,10 +144,18 @@ impl<'a> Decoder<'a> {
                 let bytes_read = self.bytes_read;
                 self.reset();
                 if accumulated_checksum.trailing_zeros() >= 8 {
-                    self.inc_count();
-                    // TODO - map err inc err counter, ok inc valid counter
-                    let f = Frame::new(&self.buffer[..bytes_read])?;
-                    return Ok(Some(f));
+                    // TODO - workaround mut borrow rules to call inc_count/inc_invalid_count in
+                    // the match arms
+                    match Frame::new(&self.buffer[..bytes_read]) {
+                        Ok(f) => {
+                            self.count = self.count.saturating_add(1); // inc_count()
+                            return Ok(Some(f));
+                        }
+                        Err(e) => {
+                            self.invalid_count = self.invalid_count.saturating_add(1); // inc_invalid_count()
+                            return Err(e.into());
+                        }
+                    }
                 } else {
                     self.inc_invalid_count();
                 }
@@ -166,11 +174,6 @@ impl<'a> Decoder<'a> {
             self.bytes_read = self.bytes_read.saturating_add(1);
             Ok(())
         }
-    }
-
-    #[inline]
-    fn inc_count(&mut self) {
-        self.count = self.count.saturating_add(1);
     }
 
     #[inline]
