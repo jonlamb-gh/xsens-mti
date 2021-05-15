@@ -1,4 +1,4 @@
-# xsens-mti
+# xsens-mti &emsp; [![crates.io]](https://crates.io/crates/xsens-mti) [![docs.rs]](https://docs.rs/xsens-mti)
 
 An unofficial and incomplete `no_std` Rust driver for Xsens MTi-series sensors.
 
@@ -53,3 +53,6 @@ The part number of the Fischer connector is SS 102A059-130 Gunfire.
 ## TODOs
 
 do all the `grep -R 'TODO' src/` things
+
+[crates.io]: https://img.shields.io/crates/v/xsens-mti.svg
+[docs.rs]: https://docs.rs/xsens-mti/badge.svg
