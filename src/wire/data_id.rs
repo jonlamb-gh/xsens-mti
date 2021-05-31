@@ -1,3 +1,28 @@
+//! MTData2 Data Identifier
+//!
+//! The data identifier is a 16-bit unsigned integer describing the contents
+//! of an MTData2 packet.
+//!
+//! It consists of the following fields:
+//! * Format: 4-bits describing the data precision and coordinate system
+//! * Type: lower 4-bits of the DataType
+//! * Group: upper 5-bits of the DataType
+//!
+//! ```no_compile
+//! B15                            B0
+//!  ┊                             ┊
+//!  ┊                             ┊
+//!  ┊                             ┊
+//! ║  second byte  ║  first byte   ║
+//! ╟───────────────╫───────────────╢
+//! ║▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒║
+//! ╟────────-╫────-╫────────╫──────╢
+//! ║  group  ║     ║  type  ║      ║
+//!              ┊               ┊
+//!              ┊               ┊
+//!           reserved         format
+//! ```
+
 // TODO
 // add all the datatype ids
 // docs on page 31
@@ -16,9 +41,9 @@ enum_with_unknown! {
         /// Single precision IEEE 32-bit floating point number
         Float32 = 0x0,
         /// Fixed point 12.20 32-bit number
-        Fp1220 = 0x1,
+        Fp1220  = 0x1,
         /// Fixed point 16.32 48-bit number
-        Fp1632 = 0x2,
+        Fp1632  = 0x2,
         /// Double precision IEEE 64-bit floating point number
         Float64 = 0x3,
     }
@@ -83,6 +108,8 @@ enum_with_unknown! {
 }
 
 impl DataType {
+    /// Shave off the format bits (B0:B3) and the reserved bits (B8:B10)
+    /// to yield the type and group bits that form the DataType
     const MASK: u16 = 0b1111_1000_1111_0000;
 }
 
@@ -115,6 +142,24 @@ impl DataId {
         }
     }
 
+    pub fn to_wire(self) -> u16 {
+        let group_type = DataType::MASK & u16::from(self.data_type);
+        let precision = 0b11 & u8::from(self.precision) as u16;
+        let coordinate_system = 0b1100 & u8::from(self.coordinate_system) as u16;
+        group_type | coordinate_system | precision
+    }
+
+    pub fn from_wire(value: u16) -> Self {
+        let precision = value & 0b11;
+        let coordinate_system = value & 0b1100;
+        let group_type = value & DataType::MASK;
+        DataId {
+            data_type: DataType::from(group_type),
+            precision: Precision::from(precision as u8),
+            coordinate_system: CoordinateSystem::from(coordinate_system as u8),
+        }
+    }
+
     pub fn from_data_type(data_type: DataType) -> Self {
         DataId {
             data_type,
@@ -138,23 +183,13 @@ impl DataId {
 
 impl From<u16> for DataId {
     fn from(value: u16) -> Self {
-        let precision = value & 0b11;
-        let coordinate_system = value & 0b1100;
-        let group_type = value & DataType::MASK;
-        DataId {
-            data_type: DataType::from(group_type),
-            precision: Precision::from(precision as u8),
-            coordinate_system: CoordinateSystem::from(coordinate_system as u8),
-        }
+        DataId::from_wire(value)
     }
 }
 
 impl From<DataId> for u16 {
     fn from(value: DataId) -> Self {
-        let group_type = DataType::MASK & u16::from(value.data_type);
-        let precision = 0b11 & u8::from(value.precision) as u16;
-        let coordinate_system = 0b1100 & u8::from(value.coordinate_system) as u16;
-        group_type | coordinate_system | precision
+        value.to_wire()
     }
 }
 
@@ -163,7 +198,7 @@ impl fmt::Display for DataId {
         write!(
             f,
             "DataId(0x{:04X}, {}, {:?}, {:?})",
-            u16::from(*self), // TODO - don't deref here
+            self.to_wire(),
             self.data_type(),
             self.precision(),
             self.coordinate_system(),
@@ -236,9 +271,185 @@ impl<T: AsRef<[u8]>> AsRef<[u8]> for WireDataId<T> {
 }
 
 #[cfg(test)]
+pub(crate) mod propt {
+    use super::*;
+    use proptest::{
+        arbitrary::Arbitrary,
+        num,
+        prelude::{any, RngCore},
+        prop_compose,
+        strategy::{NewTree, Strategy, ValueTree},
+        test_runner::TestRunner,
+    };
+
+    impl Precision {
+        const MASK: u8 = Precision::Float32.into_inner()
+            | Precision::Fp1220.into_inner()
+            | Precision::Fp1632.into_inner()
+            | Precision::Float64.into_inner();
+    }
+
+    pub struct PrecisionBinarySearch(num::u8::BinarySearch);
+
+    impl ValueTree for PrecisionBinarySearch {
+        type Value = Precision;
+
+        fn current(&self) -> Precision {
+            let v = self.0.current();
+            Precision::from(v & Precision::MASK)
+        }
+
+        fn simplify(&mut self) -> bool {
+            self.0.simplify()
+        }
+
+        fn complicate(&mut self) -> bool {
+            self.0.complicate()
+        }
+    }
+
+    #[derive(Debug)]
+    pub struct AnyPrecision;
+
+    impl Strategy for AnyPrecision {
+        type Tree = PrecisionBinarySearch;
+        type Value = Precision;
+
+        fn new_tree(&self, runner: &mut TestRunner) -> NewTree<Self> {
+            Ok(PrecisionBinarySearch(num::u8::BinarySearch::new(
+                runner.rng().next_u32() as u8,
+            )))
+        }
+    }
+
+    impl Arbitrary for Precision {
+        type Parameters = ();
+        type Strategy = AnyPrecision;
+
+        fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+            AnyPrecision
+        }
+    }
+
+    pub fn gen_precision() -> impl Strategy<Value = Precision> {
+        any::<Precision>()
+    }
+
+    impl CoordinateSystem {
+        const MASK: u8 = CoordinateSystem::Enu.into_inner()
+            | CoordinateSystem::Ned.into_inner()
+            | CoordinateSystem::Nwu.into_inner();
+    }
+
+    pub struct CoordinateSystemBinarySearch(num::u8::BinarySearch);
+
+    impl ValueTree for CoordinateSystemBinarySearch {
+        type Value = CoordinateSystem;
+
+        fn current(&self) -> CoordinateSystem {
+            let v = self.0.current();
+            CoordinateSystem::from(v & CoordinateSystem::MASK)
+        }
+
+        fn simplify(&mut self) -> bool {
+            self.0.simplify()
+        }
+
+        fn complicate(&mut self) -> bool {
+            self.0.complicate()
+        }
+    }
+
+    #[derive(Debug)]
+    pub struct AnyCoordinateSystem;
+
+    impl Strategy for AnyCoordinateSystem {
+        type Tree = CoordinateSystemBinarySearch;
+        type Value = CoordinateSystem;
+
+        fn new_tree(&self, runner: &mut TestRunner) -> NewTree<Self> {
+            Ok(CoordinateSystemBinarySearch(num::u8::BinarySearch::new(
+                runner.rng().next_u32() as u8,
+            )))
+        }
+    }
+
+    impl Arbitrary for CoordinateSystem {
+        type Parameters = ();
+        type Strategy = AnyCoordinateSystem;
+
+        fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+            AnyCoordinateSystem
+        }
+    }
+
+    pub fn gen_coordinate_system() -> impl Strategy<Value = CoordinateSystem> {
+        any::<CoordinateSystem>()
+    }
+
+    pub struct DataTypeBinarySearch(num::u16::BinarySearch);
+
+    impl ValueTree for DataTypeBinarySearch {
+        type Value = DataType;
+
+        fn current(&self) -> DataType {
+            let v = self.0.current();
+            DataType::from(v & DataType::MASK)
+        }
+
+        fn simplify(&mut self) -> bool {
+            self.0.simplify()
+        }
+
+        fn complicate(&mut self) -> bool {
+            self.0.complicate()
+        }
+    }
+
+    #[derive(Debug)]
+    pub struct AnyDataType;
+
+    impl Strategy for AnyDataType {
+        type Tree = DataTypeBinarySearch;
+        type Value = DataType;
+
+        fn new_tree(&self, runner: &mut TestRunner) -> NewTree<Self> {
+            Ok(DataTypeBinarySearch(num::u16::BinarySearch::new(
+                runner.rng().next_u32() as u16,
+            )))
+        }
+    }
+
+    impl Arbitrary for DataType {
+        type Parameters = ();
+        type Strategy = AnyDataType;
+
+        fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+            AnyDataType
+        }
+    }
+
+    pub fn gen_data_type() -> impl Strategy<Value = DataType> {
+        any::<DataType>()
+    }
+
+    prop_compose! {
+        pub fn gen_data_id()(
+            data_type in gen_data_type(),
+            precision in gen_precision(),
+            coordinate_system in gen_coordinate_system(),
+        ) -> DataId {
+            DataId::new(data_type, precision, coordinate_system)
+        }
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+    use propt::*;
+    use proptest::prelude::*;
 
     static WIRE_BYTES: [u8; 2] = [0x20, 0x16];
 
@@ -280,5 +491,35 @@ mod tests {
         assert_eq!(bytes.len(), WireDataId::<&[u8]>::buffer_len() - 1);
         let w = WireDataId::new(&bytes[..]);
         assert_eq!(w.unwrap_err(), WireError::MissingBytes);
+    }
+
+    proptest! {
+        #[test]
+        fn round_trip_precision(v_in in gen_precision()) {
+            let wire = u8::from(v_in);
+            let v_out = Precision::from(wire);
+            assert_eq!(v_in, v_out);
+        }
+
+        #[test]
+        fn round_trip_coordinate_system(v_in in gen_coordinate_system()) {
+            let wire = u8::from(v_in);
+            let v_out = CoordinateSystem::from(wire);
+            assert_eq!(v_in, v_out);
+        }
+
+        #[test]
+        fn round_trip_data_type(v_in in gen_data_type()) {
+            let wire = u16::from(v_in);
+            let v_out = DataType::from(wire);
+            assert_eq!(v_in, v_out);
+        }
+
+        #[test]
+        fn round_trip_data_id(v_in in gen_data_id()) {
+            let wire = u16::from(v_in).to_be_bytes();
+            let v_out = DataId::from(u16::from_be_bytes(wire));
+            assert_eq!(v_in, v_out);
+        }
     }
 }

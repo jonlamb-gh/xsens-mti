@@ -3,6 +3,7 @@ use static_assertions::assert_eq_size;
 assert_eq_size!(BusId, u8);
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[repr(transparent)]
 pub struct BusId(pub u8);
 
 impl BusId {

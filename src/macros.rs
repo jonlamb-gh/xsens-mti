@@ -19,6 +19,15 @@ macro_rules! enum_with_unknown {
             Unknown($ty)
         }
 
+        impl $name {
+            pub(crate) const fn into_inner(self) -> $ty {
+                match self {
+                    $( $name::$variant => $value ),*,
+                    $name::Unknown(other) => other
+                }
+            }
+        }
+
         impl ::core::convert::From<$ty> for $name {
             fn from(value: $ty) -> Self {
                 match value {
@@ -30,10 +39,7 @@ macro_rules! enum_with_unknown {
 
         impl ::core::convert::From<$name> for $ty {
             fn from(value: $name) -> Self {
-                match value {
-                    $( $name::$variant => $value ),*,
-                    $name::Unknown(other) => other
-                }
+                value.into_inner()
             }
         }
     }
