@@ -7,10 +7,17 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/jonlamb-gh/xsens-mti"
 description = "An unofficial and incomplete no_std Rust driver for Xsens MTi-series sensors."
 documentation = "https://docs.rs/xsens-mti"
+categories = ["no-std", "imu"]
+keywords = ["xsens"]
+resolver = "2"
 
 [dependencies]
-static_assertions = "1.1"
 bitfield = "0.13"
+
+[dependencies.static_assertions]
+version = "1.1"
+default-features = false
+features = []
 
 [dependencies.byteorder]
 version = "1.4"
