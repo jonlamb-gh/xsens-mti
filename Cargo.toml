@@ -1,11 +1,12 @@
 [package]
 name = "xsens-mti"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Jon Lamb"]
 edition = "2018"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/jonlamb-gh/xsens-mti"
 description = "An unofficial and incomplete no_std Rust driver for Xsens MTi-series sensors."
+documentation = "https://docs.rs/xsens-mti"
 
 [dependencies]
 static_assertions = "1.1"
