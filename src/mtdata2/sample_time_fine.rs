@@ -17,9 +17,9 @@ impl fmt::Display for SampleTimeFine {
 }
 
 mod field {
-    use crate::wire::Field;
+    use crate::wire::{field32, Field};
 
-    pub const ST: Field = 0..4;
+    pub const ST: Field = field32::F0;
 }
 
 impl SampleTimeFine {

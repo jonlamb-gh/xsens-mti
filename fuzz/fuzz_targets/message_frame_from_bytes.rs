@@ -1,4 +1,5 @@
 #![no_main]
+#![deny(warnings, clippy::all)]
 
 use libfuzzer_sys::fuzz_target;
 use xsens_mti::prelude::*;

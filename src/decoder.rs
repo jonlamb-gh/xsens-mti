@@ -1,3 +1,5 @@
+//! A basic MT protocol frame decoder
+
 use crate::message::{Frame, FrameError, PayloadLength};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, err_derive::Error)]

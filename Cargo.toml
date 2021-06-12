@@ -1,6 +1,6 @@
 [package]
 name = "xsens-mti"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Jon Lamb"]
 edition = "2018"
 license = "MIT"
@@ -23,6 +23,8 @@ features = []
 
 [dev-dependencies]
 pretty_assertions = "0.6"
+approx = "0.5"
+# Stuff for the examples
 serial = "0.4"
 ctrlc = "3.1"
 

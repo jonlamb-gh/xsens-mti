@@ -1,7 +1,10 @@
 #![no_main]
+#![deny(warnings, clippy::all)]
 
 use libfuzzer_sys::{arbitrary, fuzz_target};
 use xsens_mti::prelude::*;
+
+mod test_support;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct ArbDataId(u16);
@@ -16,7 +19,9 @@ fuzz_target!(|input: Input| {
     if input.data.len() > Frame::<&[u8]>::MAX_FRAME_SIZE {
         return;
     }
-    let data_type = DataId::from(input.data_id.0).data_type();
+    let data_id = DataId::from(input.data_id.0);
+    let data_type = data_id.data_type();
+    let precision = data_id.precision();
     let bytes = &input.data[..];
     match data_type {
         DataType::Temperature => (), // TODO no type for this yet
@@ -34,25 +39,25 @@ fuzz_target!(|input: Input| {
         }
         DataType::Quaternion => (), // TODO no type for this yet
         DataType::EulerAngles => {
-            let _ = EulerAngles::from_be_slice(bytes);
+            parse_any_precision_variant_from_be_slice!(EulerAngles, precision, bytes);
         }
         DataType::Acceleration => {
-            let _ = Acceleration::from_be_slice(bytes);
+            parse_any_precision_variant_from_be_slice!(Acceleration, precision, bytes);
         }
         DataType::AltitudeEllipsoid => {
-            let _ = AltitudeEllipsoid::from_be_slice(bytes);
+            parse_any_precision_variant_from_be_slice!(AltitudeEllipsoid, precision, bytes);
         }
         DataType::PositionEcef => {
-            let _ = PositionEcef::from_be_slice(bytes);
+            parse_float_precision_variant_from_be_slice!(PositionEcef, precision, bytes);
         }
         DataType::LatLon => {
-            let _ = LatLon::from_be_slice(bytes);
+            parse_any_precision_variant_from_be_slice!(LatLon, precision, bytes);
         }
         DataType::RateOfTurn => {
-            let _ = RateOfTurn::from_be_slice(bytes);
+            parse_any_precision_variant_from_be_slice!(RateOfTurn, precision, bytes);
         }
         DataType::VelocityXYZ => {
-            let _ = VelocityXYZ::from_be_slice(bytes);
+            parse_any_precision_variant_from_be_slice!(VelocityXYZ, precision, bytes);
         }
         DataType::StatusByte => (), // TODO no type for this yet
         DataType::StatusWord => {

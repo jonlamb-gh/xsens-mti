@@ -13,5 +13,6 @@ pub mod decoder;
 pub mod message;
 pub mod messages;
 pub mod mtdata2;
+pub mod precision;
 pub mod prelude;
 pub mod wire;
