@@ -72,8 +72,8 @@ fn main() -> Result<(), Error> {
         };
         for byte in read_buffer[..bytes_read].iter() {
             match decoder.decode(*byte) {
-                Ok(maybe_frame) => match maybe_frame {
-                    Some(f) => {
+                Ok(maybe_frame) => {
+                    if let Some(f) = maybe_frame {
                         println!("{}", f);
                         if f.message_id() == MTData2::MSG_ID {
                             println!("  MTData2");
@@ -158,8 +158,7 @@ fn main() -> Result<(), Error> {
                             }
                         }
                     }
-                    None => (),
-                },
+                }
                 Err(e) => eprintln!("WARNING : Decoder error {:?}", e),
             }
         }
