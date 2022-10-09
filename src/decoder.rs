@@ -1,6 +1,7 @@
 //! A basic MT protocol frame decoder
 
 use crate::message::{Frame, FrameError, PayloadLength};
+use core::mem;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, err_derive::Error)]
 pub enum Error {
@@ -30,7 +31,7 @@ impl Default for State {
 }
 
 #[derive(Debug)]
-pub struct Decoder<'a> {
+pub struct Decoder<B: AsRef<[u8]> + AsMut<[u8]>> {
     state: State,
     count: usize,
     invalid_count: usize,
@@ -38,25 +39,22 @@ pub struct Decoder<'a> {
     raw_payload_len: u16,
     expected_frame_size: usize,
     bytes_read: usize,
-    buffer: &'a mut [u8],
+    buffer: B,
 }
 
-impl<'a> Decoder<'a> {
-    pub fn new(buffer: &'a mut [u8]) -> Result<Self, Error> {
-        if buffer.len() < Frame::<&[u8]>::HEADER_SIZE + (PayloadLength::MAX_STD as usize) {
-            Err(Error::InsufficientBufferSize)
-        } else {
-            Ok(Decoder {
-                state: State::default(),
-                count: 0,
-                invalid_count: 0,
-                accumulated_checksum: 0,
-                raw_payload_len: 0,
-                expected_frame_size: 0,
-                bytes_read: 0,
-                buffer,
-            })
-        }
+impl<B: AsRef<[u8]> + AsMut<[u8]>> Decoder<B> {
+    pub fn new(buffer: B) -> Result<Self, Error> {
+        Self::check_buffer(&buffer)?;
+        Ok(Decoder {
+            state: State::default(),
+            count: 0,
+            invalid_count: 0,
+            accumulated_checksum: 0,
+            raw_payload_len: 0,
+            expected_frame_size: 0,
+            bytes_read: 0,
+            buffer,
+        })
     }
 
     pub fn reset(&mut self) {
@@ -75,7 +73,47 @@ impl<'a> Decoder<'a> {
         self.invalid_count
     }
 
+    pub fn swap_buffer(&mut self, new_buffer: B) -> Result<B, Error> {
+        Self::check_buffer(&new_buffer)?;
+        self.reset();
+        Ok(mem::replace(&mut self.buffer, new_buffer))
+    }
+
+    fn check_buffer(buffer: &B) -> Result<(), Error> {
+        if buffer.as_ref().len() < Frame::<&[u8]>::HEADER_SIZE + (PayloadLength::MAX_STD as usize) {
+            Err(Error::InsufficientBufferSize)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn decode_frameless(&mut self, byte: u8) -> Result<Option<usize>, Error> {
+        match self.decode(byte)? {
+            None => Ok(None),
+            Some(f) => {
+                let buf = f.into_inner();
+                Ok(buf.len().into())
+            }
+        }
+    }
+
     pub fn decode(&mut self, byte: u8) -> Result<Option<Frame<&[u8]>>, Error> {
+        match self.decode_inner(byte)? {
+            None => Ok(None),
+            Some(frame_size) => match Frame::new(&self.buffer.as_ref()[..frame_size]) {
+                Ok(f) => {
+                    self.count = self.count.saturating_add(1); // inc_count()
+                    Ok(Some(f))
+                }
+                Err(e) => {
+                    self.invalid_count = self.invalid_count.saturating_add(1); // inc_invalid_count()
+                    Err(e.into())
+                }
+            },
+        }
+    }
+
+    fn decode_inner(&mut self, byte: u8) -> Result<Option<usize>, Error> {
         match self.state {
             State::Preamble => {
                 if byte == Frame::<&[u8]>::PREAMBLE {
@@ -146,18 +184,7 @@ impl<'a> Decoder<'a> {
                 let bytes_read = self.bytes_read;
                 self.reset();
                 if accumulated_checksum.trailing_zeros() >= 8 {
-                    // TODO - workaround mut borrow rules to call inc_count/inc_invalid_count in
-                    // the match arms
-                    match Frame::new(&self.buffer[..bytes_read]) {
-                        Ok(f) => {
-                            self.count = self.count.saturating_add(1); // inc_count()
-                            return Ok(Some(f));
-                        }
-                        Err(e) => {
-                            self.invalid_count = self.invalid_count.saturating_add(1); // inc_invalid_count()
-                            return Err(e.into());
-                        }
-                    }
+                    return Ok(Some(bytes_read));
                 } else {
                     self.inc_invalid_count();
                 }
@@ -168,11 +195,11 @@ impl<'a> Decoder<'a> {
 
     #[inline]
     fn feed(&mut self, byte: u8) -> Result<(), Error> {
-        if self.bytes_read >= self.buffer.len() {
+        if self.bytes_read >= self.buffer.as_ref().len() {
             Err(Error::InsufficientBufferSize)
         } else {
             self.accumulated_checksum = self.accumulated_checksum.wrapping_add(byte as u16);
-            self.buffer[self.bytes_read] = byte;
+            self.buffer.as_mut()[self.bytes_read] = byte;
             self.bytes_read = self.bytes_read.saturating_add(1);
             Ok(())
         }
@@ -200,14 +227,35 @@ mod tests {
             for (idx, byte) in STD_MSG.iter().enumerate() {
                 let maybe_frame = dec.decode(*byte).unwrap();
                 if idx < (STD_MSG.len() - 1) {
-                    assert_eq!(maybe_frame.is_some(), false);
+                    assert!(!maybe_frame.is_some());
                 } else {
-                    assert_eq!(maybe_frame.is_some(), true);
+                    assert!(maybe_frame.is_some());
                 }
             }
         }
 
         assert_eq!(dec.count, 4);
+        assert_eq!(dec.invalid_count, 0);
+    }
+
+    #[test]
+    fn owned_buffer_swap() {
+        let buffer_a = [0_u8; 512];
+        let buffer_b = [0_u8; 512];
+        let mut dec = Decoder::new(buffer_a).unwrap();
+
+        assert_eq!(STD_MSG.len(), 8);
+        for byte in &STD_MSG[..7] {
+            assert_eq!(dec.decode_frameless(*byte).unwrap(), None);
+        }
+
+        let frame_size = dec.decode_frameless(STD_MSG[7]).unwrap().unwrap();
+        assert_eq!(frame_size, 8);
+
+        let buffer_a = dec.swap_buffer(buffer_b).unwrap();
+        assert!(Frame::new(&buffer_a[..frame_size]).is_ok());
+
+        assert_eq!(dec.count, 1);
         assert_eq!(dec.invalid_count, 0);
     }
 }
