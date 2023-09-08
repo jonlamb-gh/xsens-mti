@@ -293,6 +293,22 @@ impl<T: AsRef<[u8]> + AsMut<[u8]>> Frame<T> {
         data[offset] = value;
         Ok(())
     }
+
+    /// Compute the checksum and adjust the checksum byte such that
+    /// compute_checksum will return 0
+    #[inline]
+    pub fn compute_and_set_checksum_byte(&mut self) -> Result<(), FrameError> {
+        let payload_len = self.payload_length()?;
+        let size = payload_len.header_size() + payload_len.get();
+        let data = self.buffer.as_ref();
+        let mut sum = 0_u16;
+        for b in data[Self::PREAMBLE_SIZE..size].iter() {
+            sum = sum.wrapping_add(*b as u16);
+        }
+        let original_checksum = (sum & 0xFF) as u8;
+        let adjusted_checksum = (!original_checksum).wrapping_add(1);
+        self.set_checksum(adjusted_checksum)
+    }
 }
 
 impl<T: AsRef<[u8]>> AsRef<[u8]> for Frame<T> {
