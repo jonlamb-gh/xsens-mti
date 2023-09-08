@@ -67,7 +67,7 @@ enum_with_unknown! {
 enum_with_unknown! {
     pub enum DataType(u16) {
         // TemperatureGroup     = 0x08x0
-        Temperature             = 0x0810,
+        Temperature             = 0x0810, // degrees Celsius
 
         // TimestampGroup       = 0x10x0
         UtcTime                 = 0x1010,
@@ -77,18 +77,31 @@ enum_with_unknown! {
 
         // OrientationGroup     = 0x20xy
         Quaternion              = 0x2010,
-        EulerAngles             = 0x2030,
+        EulerAngles             = 0x2030, // degrees
 
         // AccelerationGroup    = 0x40xy
-        Acceleration            = 0x4020,
+        DeltaV                  = 0x4010, // m/s
+        Acceleration            = 0x4020, // m/s^2
+        FreeAcceleration        = 0x4030, // m/s^2
+        AccelerationHR          = 0x4040, // m/s^2
 
         // PositionGroup        = 0x50xy
-        AltitudeEllipsoid       = 0x5020,
-        PositionEcef            = 0x5030,
-        LatLon                  = 0x5040,
+        AltitudeEllipsoid       = 0x5020, // meters
+        PositionEcef            = 0x5030, // meters
+        LatLon                  = 0x5040, // degrees
+
+        // GnssGroup            = 0x70x0
+        GnssPvtData             = 0x7010,
+        GnssSatInfo             = 0x7020,
+        GnssPvtPulse            = 0x7030, // seconds
 
         // AngularVelocityGroup = 0x80xy
-        RateOfTurn              = 0x8020,
+        RateOfTurn              = 0x8020, // rad/s
+        DeltaQ                  = 0x8030,
+        RateOfTurnHr            = 0x8040, // rad/s
+
+        // MagneticGroup        = 0xC0xy
+        MagneticField           = 0xC020, // a.u. (atomic units)
 
         // VelocityGroup        = 0xD0xy
         VelocityXYZ             = 0xD010,
@@ -96,6 +109,8 @@ enum_with_unknown! {
         // StatusGroup          = 0xE0x0
         StatusByte              = 0xE010,
         StatusWord              = 0xE020,
+        DeviceId                = 0xE080,
+        LocationId              = 0xE090,
     }
 }
 
