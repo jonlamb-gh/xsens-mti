@@ -120,6 +120,12 @@ fn main() -> Result<(), Error> {
                                             println!("      {}", data);
                                         }
                                     }
+                                    DataType::MagneticField => {
+                                        if matches!(data_id.precision(), Precision::Float32) {
+                                            let data = MagneticField::<f32>::from_be_slice(pkt.payload())?;
+                                            println!("      {}", data);
+                                        }
+                                    }
                                     DataType::AltitudeEllipsoid => {
                                         if matches!(data_id.precision(), Precision::Float64) {
                                             let data = AltitudeEllipsoid::<f64>::from_be_slice(
