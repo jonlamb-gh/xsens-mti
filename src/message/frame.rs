@@ -351,7 +351,7 @@ mod tests {
         assert_eq!(f.check_preamble(), Ok(()));
         assert_eq!(f.check_payload_length(), Ok(()));
         assert_eq!(f.check_checksum(), Ok(()));
-        assert_eq!(&f.into_inner()[..], &STD_MSG[..]);
+        assert_eq!(f.into_inner(), &STD_MSG[..]);
     }
 
     #[test]

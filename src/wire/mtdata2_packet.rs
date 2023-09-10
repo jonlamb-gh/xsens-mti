@@ -224,7 +224,7 @@ mod tests {
 
     #[test]
     fn packet_iterator() {
-        let mut iter = MTData2PacketIter::new(&SEQ_WIRE_BYTES[..]).into_iter();
+        let mut iter = MTData2PacketIter::new(&SEQ_WIRE_BYTES[..]);
         let item = iter.next().unwrap();
         let p = item.unwrap();
         assert_eq!(p.data_id().data_type(), DataType::UtcTime);

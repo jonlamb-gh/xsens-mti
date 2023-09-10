@@ -12,8 +12,9 @@ pub enum Error {
     FrameError(#[error(source)] FrameError),
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
 enum State {
+    #[default]
     Preamble,
     BusId,
     MsgId,
@@ -22,12 +23,6 @@ enum State {
     ExtLenLsb,
     Payload,
     Checksum,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        State::Preamble
-    }
 }
 
 #[derive(Debug)]
@@ -227,7 +222,7 @@ mod tests {
             for (idx, byte) in STD_MSG.iter().enumerate() {
                 let maybe_frame = dec.decode(*byte).unwrap();
                 if idx < (STD_MSG.len() - 1) {
-                    assert!(!maybe_frame.is_some());
+                    assert!(maybe_frame.is_none());
                 } else {
                     assert!(maybe_frame.is_some());
                 }

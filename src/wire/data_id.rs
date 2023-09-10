@@ -37,8 +37,10 @@ use static_assertions::const_assert_eq;
 const_assert_eq!(WireDataId::<&[u8]>::WIRE_SIZE, mem::size_of::<u16>());
 
 enum_with_unknown! {
+    #[derive(Default)]
     pub enum Precision(u8) {
         /// Single precision IEEE 32-bit floating point number
+        #[default]
         Float32 = 0x0,
         /// Fixed point 12.20 32-bit number
         Fp1220  = 0x1,
@@ -49,26 +51,16 @@ enum_with_unknown! {
     }
 }
 
-impl Default for Precision {
-    fn default() -> Self {
-        Precision::Float32
-    }
-}
-
 enum_with_unknown! {
+    #[derive(Default)]
     pub enum CoordinateSystem(u8) {
         /// East-North-Up coordinate system
+        #[default]
         Enu = 0x0,
         /// North-East-Down coordinate system
         Ned = 0x4,
         /// North-West-Up coordinate system
         Nwu = 0x8,
-    }
-}
-
-impl Default for CoordinateSystem {
-    fn default() -> Self {
-        CoordinateSystem::Enu
     }
 }
 
@@ -469,7 +461,7 @@ mod tests {
             Precision::Fp1632,
             CoordinateSystem::Ned,
         ));
-        assert_eq!(&w.into_inner()[..], &WIRE_BYTES[..]);
+        assert_eq!(w.into_inner(), &WIRE_BYTES[..]);
     }
 
     #[test]

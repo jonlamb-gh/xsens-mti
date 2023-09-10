@@ -194,7 +194,7 @@ mod tests {
             ),
             OutputFrequency(400),
         ));
-        assert_eq!(&w.into_inner()[..], &WIRE_BYTES[..]);
+        assert_eq!(w.into_inner(), &WIRE_BYTES[..]);
     }
 
     #[test]
