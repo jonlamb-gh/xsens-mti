@@ -4,7 +4,6 @@
 // - reorganize the submodules/types
 
 #![no_std]
-#![deny(warnings, clippy::all)]
 
 #[macro_use]
 mod macros;

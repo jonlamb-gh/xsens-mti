@@ -1,6 +1,6 @@
 [package]
 name = "xsens-mti"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["Jon Lamb"]
 edition = "2021"
 license = "MIT OR Apache-2.0"

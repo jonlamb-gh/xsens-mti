@@ -2,6 +2,9 @@ name: CI
 
 on: [push, pull_request]
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   lint:
     runs-on: ${{ matrix.os }}
@@ -12,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache target
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -23,56 +26,39 @@ jobs:
             target
           key: ${{ matrix.os }}-cargo--${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          components: clippy, rustfmt
-          toolchain: ${{ matrix.rust }}
-          override: true
+      - name: Install toolchain and components
+        run: |
+          rustup update
+          rustup component add rustfmt clippy
+          rustup install ${{ matrix.rust }}
 
-      - name: Test Documentation
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --doc --all-features
+      - name: Toolchain info
+        run: |
+          cargo --version --verbose
+          rustc --version
+          cargo clippy --version
+
+      - name: Documentation tests
+        run: cargo test --doc --all-features
 
       - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
+        run: cargo clippy --all-features -- -W clippy::all -D warnings
 
       - name: Format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo fmt --all -- --check
 
       - name: Doc Generation
-        uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --all-features
+        run: cargo doc --examples --all-features --no-deps
 
       - name: Build examples
-        uses: marcopolo/cargo@master
-        with:
-          command: build
-          working-directory: examples
-          args: --release
+        run: cargo build --examples --release
 
       - name: Clippy examples
-        uses: marcopolo/cargo@master
-        with:
-          command: clippy
-          working-directory: examples
+        run: cargo clippy --examples --all-features -- -W clippy::all -D warnings
 
       - name: Format examples
-        uses: marcopolo/cargo@master
-        with:
-          command: fmt
-          working-directory: examples
-          args: --all -- --check
+        working-directory: examples
+        run: cargo fmt --all -- --check
 
   no-std:
     runs-on: ${{ matrix.os }}
@@ -84,10 +70,10 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache target
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -95,26 +81,24 @@ jobs:
             target
           key: ${{ matrix.os }}-cargo--${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          components: clippy
-          toolchain: ${{ matrix.rust }}
-          target: ${{ matrix.target }}
-          override: true
+      - name: Install toolchain and components
+        run: |
+          rustup update
+          rustup component add rustfmt clippy
+          rustup target add ${{ matrix.target }}
+          rustup install ${{ matrix.rust }}
+
+      - name: Toolchain info
+        run: |
+          cargo --version --verbose
+          rustc --version
+          cargo clippy --version
 
       - name: Build debug lib
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --target=${{ matrix.target }}
+        run: cargo build --target ${{ matrix.target }}
 
       - name: Build release lib
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --target=${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
 
   test:
     runs-on: ${{ matrix.os }}
@@ -125,10 +109,10 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache target
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -136,20 +120,20 @@ jobs:
             target
           key: ${{ matrix.os }}-cargo--${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          components: clippy
-          toolchain: ${{ matrix.rust }}
-          target: ${{ matrix.target }}
-          override: true
+      - name: Install toolchain and components
+        run: |
+          rustup update
+          rustup component add rustfmt clippy
+          rustup install ${{ matrix.rust }}
+
+      - name: Toolchain info
+        run: |
+          cargo --version --verbose
+          rustc --version
+          cargo clippy --version
 
       - name: Test Library
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features -- --test-threads=1
+        run: cargo test --all-features -- --test-threads=1
 
   cross-test:
     runs-on: ${{ matrix.os }}
@@ -157,14 +141,14 @@ jobs:
       matrix:
         rust: [stable]
         os: [ubuntu-latest]
-        target: [armv7-unknown-linux-gnueabihf, mips64-unknown-linux-gnuabi64]
+        target: [armv7-unknown-linux-gnueabihf, s390x-unknown-linux-gnu]
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache target
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -172,18 +156,19 @@ jobs:
             target
           key: ${{ matrix.os }}-cargo--${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          components: clippy
-          toolchain: ${{ matrix.rust }}
-          target: ${{ matrix.target }}
-          override: true
+      - name: Install toolchain and components
+        run: |
+          rustup update
+          rustup component add rustfmt clippy
+          rustup target add ${{ matrix.target }}
+          rustup install ${{ matrix.rust }}
+          cargo install cross
+
+      - name: Toolchain info
+        run: |
+          cargo --version --verbose
+          rustc --version
+          cargo clippy --version
 
       - name: Test Library
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: test
-          args: --all-features --target=${{ matrix.target }} -- --test-threads=1
+        run: cross test --all-features --target ${{ matrix.target }}
