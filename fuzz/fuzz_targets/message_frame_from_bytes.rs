@@ -14,6 +14,7 @@ fuzz_target!(|data: &[u8]| {
     let _ = f.message_id();
     let _ = f.payload_length();
     let _ = f.checksum();
+    let _ = f.compute_checksum_byte();
     let _ = f.compute_checksum();
     let _ = f.payload();
 });

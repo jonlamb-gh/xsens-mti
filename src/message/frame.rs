@@ -206,6 +206,7 @@ impl<T: AsRef<[u8]>> Frame<T> {
         }
     }
 
+    /// Return the checksum byte.
     #[inline]
     pub fn checksum(&self) -> Result<u8, FrameError> {
         let payload_len = self.payload_length()?;
@@ -215,17 +216,29 @@ impl<T: AsRef<[u8]>> Frame<T> {
         Ok(data[offset])
     }
 
-    /// Sum of all bytes excluding the preamble
+    /// Compute the checksum byte value such that [`Self::compute_checksum()`] will return zero.
+    ///
+    /// Excludes the preamble and current checksum byte.
+    #[inline]
+    pub fn compute_checksum_byte(&self) -> Result<u8, FrameError> {
+        let payload_len = self.payload_length()?;
+        let size = payload_len.header_size() + payload_len.get();
+        let data = self.buffer.as_ref();
+        let mut crc = 0_u8;
+        for b in data[Self::PREAMBLE_SIZE..size].iter() {
+            crc = crc.wrapping_sub(*b);
+        }
+        Ok(crc)
+    }
+
+    /// Compute the checksum of all bytes excluding the preamble.
+    ///
+    /// If the result equals zero, the message is valid and it may be processed.
     #[inline]
     pub fn compute_checksum(&self) -> Result<u8, FrameError> {
-        let payload_len = self.payload_length()?;
-        let size = payload_len.header_size() + payload_len.get() + Self::CHECKSUM_SIZE;
-        let data = self.buffer.as_ref();
-        let mut sum = 0_u16;
-        for b in data[Self::PREAMBLE_SIZE..size].iter() {
-            sum = sum.wrapping_add(*b as u16);
-        }
-        Ok((sum & 0xFF) as u8)
+        let mut crc = self.compute_checksum_byte()?;
+        crc = crc.wrapping_sub(self.checksum()?);
+        Ok(crc)
     }
 }
 
@@ -347,6 +360,7 @@ mod tests {
         f.payload_mut()
             .unwrap()
             .copy_from_slice(&STD_MSG_PAYLOAD[..]);
+        assert_eq!(f.compute_checksum_byte(), Ok(0xDD));
         f.set_checksum(0xDD).unwrap();
         assert_eq!(f.check_preamble(), Ok(()));
         assert_eq!(f.check_payload_length(), Ok(()));
@@ -365,7 +379,9 @@ mod tests {
             Ok(PayloadLength::new_standard(3).unwrap())
         );
         assert_eq!(f.payload(), Ok(&STD_MSG_PAYLOAD[..]));
+        assert_eq!(f.compute_checksum_byte(), Ok(0xDD));
         assert_eq!(f.checksum(), Ok(0xDD));
+        assert_eq!(f.compute_checksum(), Ok(0));
     }
 
     #[test]
