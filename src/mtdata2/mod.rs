@@ -1,8 +1,8 @@
 pub mod acceleration;
-pub mod magnetic_field;
 pub mod altitude_ellipsoid;
 pub mod euler_angles;
 pub mod lat_lon;
+pub mod magnetic_field;
 pub mod packet_counter;
 pub mod position_ecef;
 pub mod rate_of_turn;
@@ -13,10 +13,10 @@ pub mod utc_time;
 pub mod velocity_xyz;
 
 pub use acceleration::*;
-pub use magnetic_field::*;
 pub use altitude_ellipsoid::*;
 pub use euler_angles::*;
 pub use lat_lon::*;
+pub use magnetic_field::*;
 pub use packet_counter::*;
 pub use position_ecef::*;
 pub use rate_of_turn::*;

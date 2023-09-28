@@ -122,7 +122,8 @@ fn main() -> Result<(), Error> {
                                     }
                                     DataType::MagneticField => {
                                         if matches!(data_id.precision(), Precision::Float32) {
-                                            let data = MagneticField::<f32>::from_be_slice(pkt.payload())?;
+                                            let data =
+                                                MagneticField::<f32>::from_be_slice(pkt.payload())?;
                                             println!("      {}", data);
                                         }
                                     }
