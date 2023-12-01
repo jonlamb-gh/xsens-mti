@@ -56,6 +56,9 @@ fuzz_target!(|input: Input| {
         DataType::RateOfTurn => {
             parse_any_precision_variant_from_be_slice!(RateOfTurn, precision, bytes);
         }
+        DataType::MagneticField => {
+            parse_any_precision_variant_from_be_slice!(MagneticField, precision, bytes);
+        }
         DataType::VelocityXYZ => {
             parse_any_precision_variant_from_be_slice!(VelocityXYZ, precision, bytes);
         }
@@ -64,5 +67,6 @@ fuzz_target!(|input: Input| {
             let _ = StatusWord::from_be_slice(bytes);
         }
         DataType::Unknown(_) => (),
+        _ => (),
     }
 });
