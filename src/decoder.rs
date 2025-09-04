@@ -4,6 +4,7 @@ use crate::message::{Frame, FrameError, PayloadLength};
 use core::mem;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, thiserror::Error)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Error {
     #[error("Not enough bytes in the decoder buffer to store the frame")]
     InsufficientBufferSize,

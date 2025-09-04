@@ -26,6 +26,7 @@ pub(crate) mod field64 {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, thiserror::Error)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum WireError {
     #[error("Missing bytes")]
     MissingBytes,

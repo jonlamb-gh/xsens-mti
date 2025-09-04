@@ -22,6 +22,7 @@ const_assert_eq!(Frame::<&[u8]>::CHECKSUM_SIZE, mem::size_of::<u8>());
 // - proptest round trip
 // - consider removing the protocol check in payload length making it infallible
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, thiserror::Error)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FrameError {
     #[error("Not enough bytes for a valid header")]
     MissingHeader,
