@@ -25,8 +25,8 @@ pub(crate) mod field64 {
     pub const F2: Field = 16..24;
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, err_derive::Error)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, thiserror::Error)]
 pub enum WireError {
-    #[error(display = "Missing bytes")]
+    #[error("Missing bytes")]
     MissingBytes,
 }
