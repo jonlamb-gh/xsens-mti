@@ -1,5 +1,3 @@
-#![deny(warnings, clippy::all)]
-
 use serial::prelude::*;
 use std::io::{self, Read};
 use std::process;
@@ -8,25 +6,25 @@ use std::sync::Arc;
 use std::time::Duration;
 use xsens_mti::prelude::*;
 
-#[derive(Debug, err_derive::Error)]
+#[derive(Debug, thiserror::Error)]
 enum Error {
-    #[error(display = "Control-C error")]
-    Ctrlc(#[error(source)] ctrlc::Error),
+    #[error("Control-C error")]
+    Ctrlc(#[from] ctrlc::Error),
 
-    #[error(display = "IO error")]
-    Io(#[error(source)] io::Error),
+    #[error("IO error")]
+    Io(#[from] io::Error),
 
-    #[error(display = "Serial error")]
-    Serial(#[error(source)] serial::Error),
+    #[error("Serial error")]
+    Serial(#[from] serial::Error),
 
-    #[error(display = "Wire error")]
-    Wire(#[error(source)] xsens_mti::wire::WireError),
+    #[error("Wire error")]
+    Wire(#[from] xsens_mti::wire::WireError),
 
-    #[error(display = "Framing error")]
-    Frame(#[error(source)] xsens_mti::message::FrameError),
+    #[error("Framing error")]
+    Frame(#[from] xsens_mti::message::FrameError),
 
-    #[error(display = "Decoder error")]
-    Decoder(#[error(source)] xsens_mti::decoder::Error),
+    #[error("Decoder error")]
+    Decoder(#[from] xsens_mti::decoder::Error),
 }
 
 fn main() -> Result<(), Error> {
