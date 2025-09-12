@@ -20,7 +20,7 @@ impl fmt::Display for SampleTimeCoarse {
 }
 
 mod field {
-    use crate::wire::{field32, Field};
+    use crate::wire::{Field, field32};
 
     pub const ST: Field = field32::F0;
 }

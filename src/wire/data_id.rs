@@ -283,7 +283,7 @@ pub(crate) mod propt {
     use proptest::{
         arbitrary::Arbitrary,
         num,
-        prelude::{any, RngCore},
+        prelude::{RngCore, any},
         prop_compose,
         strategy::{NewTree, Strategy, ValueTree},
         test_runner::TestRunner,

@@ -40,7 +40,7 @@ impl fmt::Display for StatusWord {
 }
 
 mod field {
-    use crate::wire::{field32, Field};
+    use crate::wire::{Field, field32};
 
     pub const SW: Field = field32::F0;
 }

@@ -54,7 +54,7 @@ macro_rules! precision_float32_newtype_wire_impl {
     ($name:ident) => {
         mod generated_1field_float32 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field32, WireError};
+            use crate::wire::{WireError, field32};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -95,7 +95,7 @@ macro_rules! precision_fp1220_newtype_wire_impl {
     ($name:ident) => {
         mod generated_1field_fp1220 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field32, WireError};
+            use crate::wire::{WireError, field32};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -135,7 +135,7 @@ macro_rules! precision_float64_newtype_wire_impl {
     ($name:ident) => {
         mod generated_1field_float64 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field64, WireError};
+            use crate::wire::{WireError, field64};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -176,7 +176,7 @@ macro_rules! precision_fp1632_newtype_wire_impl {
     ($name:ident) => {
         mod generated_1field_fp1632 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field64, WireError};
+            use crate::wire::{WireError, field64};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -216,7 +216,7 @@ macro_rules! precision_float32_2field_wire_impl {
     ($name:ident, $f0:ident, $f1:ident) => {
         mod generated_2field_float32 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field32, WireError};
+            use crate::wire::{WireError, field32};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -259,7 +259,7 @@ macro_rules! precision_fp1220_2field_wire_impl {
     ($name:ident, $f0:ident, $f1:ident) => {
         mod generated_2field_fp1220 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field32, WireError};
+            use crate::wire::{WireError, field32};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -301,7 +301,7 @@ macro_rules! precision_float64_2field_wire_impl {
     ($name:ident, $f0:ident, $f1:ident) => {
         mod generated_2field_float64 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field64, WireError};
+            use crate::wire::{WireError, field64};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -347,7 +347,7 @@ macro_rules! precision_fp1632_2field_wire_impl {
     ($name:ident, $f0:ident, $f1:ident) => {
         mod generated_2field_fp1632 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field64, WireError};
+            use crate::wire::{WireError, field64};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -392,7 +392,7 @@ macro_rules! precision_float32_3field_wire_impl {
     ($name:ident, $f0:ident, $f1:ident, $f2:ident) => {
         mod generated_3field_float32 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field32, WireError};
+            use crate::wire::{WireError, field32};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -439,7 +439,7 @@ macro_rules! precision_fp1220_3field_wire_impl {
     ($name:ident, $f0:ident, $f1:ident, $f2:ident) => {
         mod generated_3field_fp1220 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field32, WireError};
+            use crate::wire::{WireError, field32};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -485,7 +485,7 @@ macro_rules! precision_float64_3field_wire_impl {
     ($name:ident, $f0:ident, $f1:ident, $f2:ident) => {
         mod generated_3field_float64 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field64, WireError};
+            use crate::wire::{WireError, field64};
             use core::mem;
             use static_assertions::assert_eq_size;
 
@@ -533,7 +533,7 @@ macro_rules! precision_fp1632_3field_wire_impl {
     ($name:ident, $f0:ident, $f1:ident, $f2:ident) => {
         mod generated_3field_fp1632 {
             use crate::precision::PrecisionExt;
-            use crate::wire::{field64, WireError};
+            use crate::wire::{WireError, field64};
             use core::mem;
             use static_assertions::assert_eq_size;
 
