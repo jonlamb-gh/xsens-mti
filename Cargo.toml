@@ -2,14 +2,13 @@
 name = "xsens-mti"
 version = "0.6.1"
 authors = ["Jon Lamb"]
-edition = "2021"
+edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/jonlamb-gh/xsens-mti"
 description = "An unofficial and incomplete no_std Rust driver for Xsens MTi-series sensors."
 documentation = "https://docs.rs/xsens-mti"
 categories = ["no-std"]
 keywords = ["xsens"]
-resolver = "2"
 
 [dependencies]
 bitfield = "0.14"
@@ -18,9 +17,9 @@ static_assertions = { version = "1.1", default-features = false }
 thiserror = { version = "2", default-features = false }
 
 [dev-dependencies]
+pretty_assertions = "1.4"
 approx = "0.5"
-ctrlc = "3.4"
+proptest = { version = "1.2", default-features = false }
 # Stuff for the examples
 serial = "0.4"
-pretty_assertions = "1.4"
-proptest = { version = "1.2", default-features = false }
+ctrlc = "3.4"
